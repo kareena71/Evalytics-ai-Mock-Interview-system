@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Performance Report</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+      <h2>AI Mock<br>Interviewer</h2>
+      <a href="{{ url_for('setup') }}">Setup</a>
+      <a href="{{ url_for('interview') }}">Live Session</a>
+      <a class="active">Results</a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+      <h1 class="page-title">Results</h1>
+      <p class="sub-title">Interview Analysis</p>
+
+      <!-- TOP SUMMARY CARDS -->
+      <div class="results-grid">
+
+         <div class="result-card premium-card">
+    <p>⭐ Performance Summary</p>
+    <h2 class="final-score">{{ report.final_score }}%</h2>
+
+    {% if report.final_score >= 75 %}
+        <span class="status excellent">Excellent</span>
+    {% elif report.final_score >= 50 %}
+        <span class="status average">Average</span>
+    {% else %}
+        <span class="status poor">Needs Improvement</span>
+    {% endif %}
+</div>
+
+
+          <div class="result-card">
+              <p>🔒 Integrity</p>
+              <h2>{{ report.integrity_score }}%</h2>
+          </div>
+
+          <div class="result-card">
+              <p>⚠ Focus Violations</p>
+              <h2>{{ report.focus_violations }}</h2>
+          </div>
+
+      </div>
+
+      <!-- DETAILED ANALYSIS -->
+      <h3 class="section-title">Detailed Interview Analysis</h3>
+
+      <div class="analysis-grid">
+
+          <div class="analysis-card">
+              <p>✔ Answer Quality – {{ report.answer_quality }}%</p>
+              <div class="progress-bar">
+    <div class="progress-fill"
+         style="width: {{ report.answer_quality }}%;
+                background: linear-gradient(90deg,#4facfe,#00f2fe);">
+    </div>
+</div>
+          </div>
+
+          <div class="analysis-card">
+              <p>📊 Confidence Level – {{ report.confidence_level }}%</p>
+              <div class="progress-bar">
+    <div class="progress-fill"
+         style="width: {{ report.confidence_level }}%;
+                background: linear-gradient(90deg,#43e97b,#38f9d7);">
+    </div>
+</div>
+
+          </div>
+
+          <div class="analysis-card">
+              <p>🧠 Resume Job Match – {{ report.resume_match }}%</p>
+              <div class="progress-bar">
+    <div class="progress-fill"
+         style="width: {{ report.resume_match }}%;
+                background: linear-gradient(90deg,#ff758c,#ff7eb3);">
+    </div>
+</div>
+
+          </div>
+
+      </div>
+
+      <!-- BUTTON -->
+      <div class="center-btn">
+          <a href="{{ url_for('setup') }}" class="start-btn">
+              Start New Session
+          </a>
+      </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>

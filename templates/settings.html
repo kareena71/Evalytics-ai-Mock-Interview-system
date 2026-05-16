@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Candidate Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="main-container">
+    <div class="card" style="width:500px;">
+        <h2>Candidate Details</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <label>Candidate Name</label>
+            <input type="text" name="candidate_name" required>
+
+            <label>Job Role</label>
+            <input type="text" name="job_role" required>
+
+            <label>Job Description</label>
+            <textarea name="job_description" rows="6" required>
+We are seeking a Data Scientist with skills in Python, machine learning,
+statistics, data analysis, SQL, visualization, and predictive modeling.
+            </textarea>
+
+            <label>Upload Resume (PDF)</label>
+            <input type="file" name="resume" accept=".pdf" required>
+
+            <button type="submit" class="btn-primary">
+                Continue to Interview
+            </button>
+
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

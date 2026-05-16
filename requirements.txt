@@ -1,0 +1,5 @@
+flask
+textblob
+scikit-learn
+opencv-python
+PyPDF2

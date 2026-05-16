@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mock Interview</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <h2>AI Mock<br>Interviewer</h2>
+        <a href="/">Setup</a>
+        <a class="active">Live Session</a>
+        <a href="/result">Report</a>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- HEADER -->
+        <div class="interview-header">
+            <h1>Mock Interview</h1>
+
+            <div class="candidate-info">
+                <span>{{ name }}</span>
+                <span>|</span>
+                <span>{{ role }}</span>
+                <button class="edit-btn">Edit ✎</button>
+            </div>
+        </div>
+
+        <!-- GRID -->
+        <div class="main-grid">
+
+            <!-- LEFT COLUMN -->
+            <div class="left-column">
+
+                <!-- QUESTION -->
+                <div class="question-bar">
+                    <span id="questionText"></span>
+                    <button onclick="speakQuestion()">🔊</button>
+                </div>
+
+                <!-- VIDEO -->
+                <div class="video-card">
+                    <h3>Live Proctoring</h3>
+                    <div class="video-wrapper">
+                        <video id="video" autoplay muted playsinline></video>
+                    </div>
+                </div>
+
+                <!-- STATS -->
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <p>Face Status</p>
+                        <h3 id="faceStatus">NO FACE DETECTED</h3>
+                    </div>
+
+                    <div class="stat-box">
+                        <p>Integrity</p>
+                        <h3 id="integrityScore">●</h3>
+                    </div>
+
+                    <div class="stat-box">
+                        <p>Focus Violations</p>
+                        <h3 id="violations">0</h3>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="right-column">
+
+                <!-- TRANSCRIPT -->
+                <div class="transcript-panel">
+                    <h3>📄 Live Transcript</h3>
+
+                    <textarea id="answer" placeholder="Start Speaking..."></textarea>
+
+                    <div class="controls">
+                        <button onclick="startRecording()">Start</button>
+                        <button id="nextBtn" onclick="nextQuestion()">Next</button>
+                        <button id="submitBtn" style="display:none"
+                                onclick="submitInterview()">Submit</button>
+                    </div>
+                </div>
+
+                <!-- ASSISTANT IMAGE -->
+                <div class="assistant-corner">
+                    <img src="{{ url_for('static', filename='ai_assistant.png') }}">
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="{{ url_for('static', filename='video_proctoring.js') }}"></script>
+
+<script>
+const questions = [
+  "What does overfitting mean in a machine learning model?",
+  "What is OLTP?",
+  "What is the CAP theorem?"
+];
+
+let qIndex = 0;
+let transcript = "";
+let isRecording = false;
+let fullInterviewTranscript = "";
+
+function loadQuestion(){
+    document.getElementById("questionText").innerText =
+        "Q" + (qIndex+1) + ". " + questions[qIndex];
+
+    transcript = "";
+    document.getElementById("answer").value = "";
+
+    const submitBtn = document.getElementById("submitBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    if(qIndex === questions.length - 1){
+        submitBtn.style.display = "inline-block";
+        nextBtn.disabled = true;
+        nextBtn.style.opacity = "0.4";
+    } else {
+        submitBtn.style.display = "none";
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = "1";
+    }
+}
+
+function nextQuestion() {
+    const currentAnswer = document.getElementById("answer").value.trim();
+
+    if (currentAnswer.length > 0) {
+        fullInterviewTranscript += currentAnswer + " ";
+    }
+
+    if (qIndex < questions.length - 1) {
+        qIndex++;
+        loadQuestion();
+    }
+}
+
+function speakQuestion(){
+    speechSynthesis.speak(
+        new SpeechSynthesisUtterance(questions[qIndex])
+    );
+}
+
+loadQuestion();
+
+/* SPEECH RECOGNITION */
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+recognition.continuous = true;
+recognition.interimResults = true;
+recognition.lang = "en-US";
+
+recognition.onresult = (e) => {
+  let interimTranscript = "";
+
+  for (let i = e.resultIndex; i < e.results.length; i++) {
+    const transcriptPiece = e.results[i][0].transcript;
+
+    if (e.results[i].isFinal) {
+      transcript += transcriptPiece + " ";
+    } else {
+      interimTranscript += transcriptPiece;
+    }
+  }
+
+  document.getElementById("answer").value =
+      transcript + interimTranscript;
+};
+
+recognition.onend = () => {
+  if (isRecording) {
+    recognition.start();
+  }
+};
+
+function startRecording(){
+    if(!isRecording){
+        transcript = "";
+        recognition.start();
+        isRecording = true;
+    }
+}
+
+function submitInterview() {
+    isRecording = false;
+    recognition.stop();
+
+    const finalAnswer = fullInterviewTranscript.trim();
+
+    fetch("/submit_interview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            answer: finalAnswer,
+            violations: parseInt(
+                document.getElementById("violations").innerText
+            )
+        })
+    }).then(() => {
+        window.location.href = "/result";
+    });
+}
+</script>
+
+</body>
+</html>
